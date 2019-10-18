@@ -14,9 +14,9 @@ function usage_and_exit ()
 {
     echo "Usage: ./brutenib.sh options"
     echo "Options:"
-    echo "-m input_nib.mol2,   A cavity-based NIB model from PANTHER (in MOL2 format)."
-    echo "-l ligand_file.mol2, A ligand file with multiple docking poses for actives (LIG)"
-    echo "                     and inactives from PLANTS (in MOL2 format)."
+    echo "-m model,            E.g. cavity-based NIB model from PANTHER (in MOL2 format)."
+    echo "-l training-set,     A ligand file with multiple docking poses for actives (LIG)"
+    echo "                     and inactives from e.g. PLANTS (in MOL2 format)."
     echo "-c number,           The number of processors to be used in the ShaEP-based NIB rescoring"
     echo "                     and ROCKER.  Optional.  Defaults to 4."
     echo "-s scoring,          Used scoring method. Optional. 'EF' or 'BR'.  BR can have a number."
@@ -166,9 +166,10 @@ do
 	rm ${WDIR}/!(${WINP%.mol2})-rescore.txt  # Remove all but winner's shaep table
     else
 	# No improvement
-	echo "Final: ${WINNER}"
-	exit 0
+	break
     fi
 done
 
+echo "Final: ${WINNER}"
+ln -s ${WINNER} ${PREFIX}-final.mol2
 rm ./part*.mol2  # Remove split ${LIGANDS}
