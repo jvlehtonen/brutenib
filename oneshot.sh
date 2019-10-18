@@ -3,36 +3,66 @@ shopt -s extglob
 #
 # oneshot: score original model
 #
-# USAGE: ./oneshot.sh input_nib.mol2 ligand_file.mol2 [slurm|number [EF|BRn]]
-# Input #1 A cavity-based NIB model from PANTHER (in MOL2 format).
-# Input #2 A ligand file with multiple docking poses for actives (LIG) and inactives from PLANTS (in MOL2 format).
-# Input #3 Either word "slurm" or the number of processors to be used in the ShaEP-based NIB rescoring.  Optional.  Defaults to 4.
-# Input #4 Used scoring method. Optional.  Defaults to AUC. 'EF' or 'BR'. BR can have a number. Anything else selects AUC.
-
 # External software requirements: ROCKER and ShaEP installed in the path.
 
-[[ $# -lt 2 ]] && exit 1
+function usage_and_exit ()
+{
+    echo "Usage: ./oneshot.sh options"
+    echo "Options:"
+    echo "-m input_nib.mol2,   A cavity-based NIB model from PANTHER (in MOL2 format)."
+    echo "-l ligand_file.mol2, A ligand file with multiple docking poses for actives (LIG)"
+    echo "                     and inactives from PLANTS (in MOL2 format)."
+    echo "-s scoring,          Used scoring method. Optional. 'EF' or 'BR'.  BR can have a number."
+    echo "                     Anything else selects AUC. Defaults to AUC."
+    echo "-p prefix,           Prefix for generated directory names.  Optional.  Defaults to 'gen'."
+    echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
+    echo "-h|--help,           This text"
+    exit 1
+}
 
-NIB=$1
-WHOLELIC=$2
-./mol2split "${WHOLELIC}" 100000
+TEMP=$(getopt -o m:l:s:p:h -l espweight:,help -n 'oneshot' -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+MODEL=""
+LIGANDS=""
+SCORING="AUC"
+PREFIX="gen"
+ESPWEIGHT="0.5"
+while true ; do
+        case "$1" in
+                -l) LIGANDS="$2" ; shift 2 ;;
+                -m) MODEL="$2"   ; shift 2 ;;
+                -p) PREFIX="$2"  ; shift 2 ;;
+                -s) SCORING="$2" ; shift 2 ;;
+                --espweight) ESPWEIGHT="$2" ; shift 2 ;;
+                -h|--help) usage_and_exit ;;
+                --) shift ; break ;;
+                *) echo "Internal error!" ; exit 1 ;;
+        esac
+done
+
+# Must have model and ligand files
+[[ -n "${MODEL}" && -n "${LIGANDS}" ]] || usage_and_exit
+
+[[ -f part1.mol2 ]] || ./mol2split "${LIGANDS}" 100000
 
 GENERATION=0
-WDIR=gen${GENERATION}
+WDIR=${PREFIX}${GENERATION}
 mkdir ${WDIR}
 VICTIM=1
 MOF=model-g${GENERATION}-${VICTIM}.mol2
-cp "${NIB}" ${WDIR}/${MOF}
+cp "${MODEL}" ${WDIR}/${MOF}
 pushd ${WDIR}
 for PLIC in ../part*.mol2
 do
-    ../nibscore.sh ${MOF} "${PLIC}"
+    ../nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT}
 done
-../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "$4"
+../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
 
 popd
 WINNER=${WDIR}/${MOF}
 
 echo "The best pocket of generation ${GENERATION} was ${WINNER}"
 cat ${WINNER%.mol2}-rescore_enrich.txt
-ln -s ${WINNER} .
+ln -s ${WINNER} ${PREFIX}-${WINNER#${WDIR}/}
+

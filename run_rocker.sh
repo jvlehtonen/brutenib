@@ -15,7 +15,7 @@ then
     then
 	BRA=20
     else
-	BRA=${4#BR}
+	BRA=${2#BR}
     fi
 fi
 
@@ -26,3 +26,4 @@ awk -f ../trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
 MOR=${MOT}_enrich.txt
 ${ROCKER} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}
 ${ROCKER} ${MOT}-trim.txt ${OPT} -BR ${BRA} -EFd 5 | tail -2 >> ${MOR}
+# echo ${ROCKER} ${MOT}-trim.txt ${OPT} -BR ${BRA} -EFd 5 | tail -2

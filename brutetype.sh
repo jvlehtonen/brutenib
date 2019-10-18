@@ -15,13 +15,24 @@ shopt -s extglob
 #
 # Final model (and score) will be written to directory type1.
 #
-# USAGE: ./brutetype.sh input_nib.mol2 ligand_file.mol2 [slurm|number [EF|BRn]]
-# Input #1 A cavity-based NIB model from PANTHER (in MOL2 format).
-# Input #2 A ligand file with multiple docking poses for actives (LIG) and inactives from PLANTS (in MOL2 format).
-# Input #3 Either word "slurm" or the number of processors to be used in the ShaEP-based NIB rescoring.  Optional.  Defaults to 4.
-# Input #4 Used scoring method. Optional.  Defaults to AUC. 'EF' or 'BR'. BR can have a number. Anything else selects AUC.
-
 # External software requirements: ROCKER and ShaEP installed in the path.
+
+function usage_and_exit ()
+{
+    echo "Usage: ./brutetype.sh options"
+    echo "Options:"
+    echo "-m input_nib.mol2,   A cavity-based NIB model from PANTHER (in MOL2 format)."
+    echo "-l ligand_file.mol2, A ligand file with multiple docking poses for actives (LIG)"
+    echo "                     and inactives from PLANTS (in MOL2 format)."
+    echo "-c number,           The number of processors to be used in the ShaEP-based NIB rescoring"
+    echo "                     and ROCKER.  Optional.  Defaults to 4."
+    echo "-s scoring,          Used scoring method. Optional. 'EF' or 'BR'.  BR can have a number."
+    echo "                     Anything else selects AUC. Defaults to AUC."
+    echo "-p prefix,           Prefix for generated directory names.  Optional.  Defaults to 'gen'."
+    echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
+    echo "-h|--help,           This text"
+    exit 1
+}
 
 function get_score ()
 {
@@ -38,19 +49,49 @@ function get_score ()
     esac
 }
 
-[[ $# -lt 2 ]] && exit 1
+# Note that we use `"$@"' to let each command-line parameter expand to a
+# separate word. The quotes around `$@' are essential!
+# We need TEMP as the `eval set --' would nuke the return value of getopt.
+TEMP=$(getopt -o m:l:c:s:p:h -l espweight:,help -n 'brutetype' -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+MODEL=""
+LIGANDS=""
+CORES="4"
+SCORING="AUC"
+PREFIX="gen"
+ESPWEIGHT="0.5"
+while true ; do
+        case "$1" in
+                -l) LIGANDS="$2" ; shift 2 ;;
+                -m) MODEL="$2"   ; shift 2 ;;
+                -p) PREFIX="$2"  ; shift 2 ;;
+                -s) SCORING="$2" ; shift 2 ;;
+                -c) CORES="$2"   ; shift 2 ;;
+                --espweight) ESPWEIGHT="$2" ; shift 2 ;;
+                -h|--help) usage_and_exit ;;
+                --) shift ; break ;;
+                *) echo "Internal error!" ; exit 1 ;;
+        esac
+done
+
+# Must have model and ligand files
+[[ -n "${MODEL}" && -n "${LIGANDS}" ]] || usage_and_exit
 
 # Ensure that we have initial model and its score
-[[ -f gen0/model-g0-1-rescore_enrich.txt ]] || ./oneshot.sh "$@"
+[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || ./oneshot.sh -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX}
 
-NIB=$1
+NIB=${MODEL}
 
 GENERATION=0
-WDIR=gen${GENERATION}
+WDIR=${PREFIX}${GENERATION}
 VICTIM=1
 MOF=model-g${GENERATION}-${VICTIM}.mol2
 WINNER=${WDIR}/${MOF}
-SCORE=$(get_score "${4}" ${VICTIM})
+SCORE=$(get_score "${SCORING}" ${VICTIM})
 echo "The best pocket of generation ${GENERATION} was ${WINNER}"
 cat ${WINNER%.mol2}-rescore_enrich.txt
 
@@ -82,9 +123,9 @@ for PLIC in ../part*.mol2
 do
     for VICTIM in model-g*.mol2
     do
-	../nibscore.sh ${VICTIM} "${PLIC}" &
+	../nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} &
 	NPROC=$[NPROC + 1]
-	if [[ "$NPROC" -ge ${3:-4} ]]; then
+	if [[ "$NPROC" -ge ${CORES} ]]; then
 	    wait
 	    NPROC=0
 	fi
@@ -95,9 +136,9 @@ wait
 NPROC=0
 for (( VICTIM=1; VICTIM<=$[${NUM} + ${NUM}]; ++VICTIM ))
 do
-    ../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${4}" &
+    ../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}" &
     NPROC=$[NPROC + 1]
-    if [[ "$NPROC" -ge ${3:-4} ]]; then
+    if [[ "$NPROC" -ge ${CORES} ]]; then
 	wait
 	NPROC=0
     fi
@@ -105,39 +146,41 @@ done
 wait
 popd
 
-WWDIR=type1
-mkdir ${WWDIR}
-sed "${HEADER} q;" "${NIB}" > "${WWDIR}/model-g1-1.mol2"
+PDIR=${WDIR}
+PGEN=${GENERATION}
+WDIR=type1
+mkdir ${WDIR}
+sed "${HEADER} q;" "${NIB}" > "${WDIR}/model-g1-1.mol2"
 for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
 do
-    EF=$(get_score "${4}" "${VICTIM}")
+    EF=$(get_score "${SCORING}" "${VICTIM}")
     THIRD=$[${NUM} + ${VICTIM}]
-    EG=$(get_score "${4}" ${THIRD})
+    EG=$(get_score "${SCORING}" ${THIRD})
 
     if [[ 1 = $(echo $EF'>'$BEST | bc -l) ]] ; then
 	if [[ 1 = $(echo $EG'>'$EF | bc -l) ]] ; then
-	    sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${THIRD}.mol2" >> "${WWDIR}/model-g1-1.mol2"
+	    sed -n "$[${VICTIM} + ${HEADER}] p" "${PDIR}/model-g${PGEN}-${THIRD}.mol2" >> "${WDIR}/model-g1-1.mol2"
 	else
-	    sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${VICTIM}.mol2" >> "${WWDIR}/model-g1-1.mol2"
+	    sed -n "$[${VICTIM} + ${HEADER}] p" "${PDIR}/model-g${PGEN}-${VICTIM}.mol2" >> "${WDIR}/model-g1-1.mol2"
 	fi
     elif [[ 1 = $(echo $EG'>'$BEST | bc -l) ]] ; then
-	sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${THIRD}.mol2" >> "${WWDIR}/model-g1-1.mol2"
+	sed -n "$[${VICTIM} + ${HEADER}] p" "${PDIR}/model-g${PGEN}-${THIRD}.mol2" >> "${WDIR}/model-g1-1.mol2"
     else
-	sed -n "$[${VICTIM} + ${HEADER}] p" "${NIB}" >> "${WWDIR}/model-g1-1.mol2"
+	sed -n "$[${VICTIM} + ${HEADER}] p" "${NIB}" >> "${WDIR}/model-g1-1.mol2"
     fi
 done
 
 GENERATION=1
-pushd ${WWDIR}
+pushd ${WDIR}
 for PLIC in ../part*.mol2
 do
     for VICTIM in model-g*.mol2
     do
-	../nibscore.sh ${VICTIM} "${PLIC}"
+	../nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT}
     done
 done
 
 VICTIM=1
-../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${4}"
+../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
 popd
-cat ${WWDIR}/model-g1-1-rescore_enrich.txt
+cat ${WDIR}/model-g1-1-rescore_enrich.txt
