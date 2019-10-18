@@ -23,149 +23,121 @@ shopt -s extglob
 
 # External software requirements: ROCKER and ShaEP installed in the path.
 
-ROCKER="rocker"
+function get_score ()
+{
+    case "${1}" in
+	'EF')
+	    # echo "Rank by EFd 1"
+	    sed -n "s/EF_1.0.*= //p" ${WDIR}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
+	BR*)
+	    # echo "Rank by BR ${BRA}"
+	    sed -n "s/BEDROC.*= //p" ${WDIR}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
+	*)
+	    # echo "Rank by AUC"
+	    sed -n "/AUC/ {s/AUC=//; s/+-.*//; p}" ${WDIR}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
+    esac
+}
 
 [[ $# -lt 2 ]] && exit 1
 
+# Ensure that we have initial model and its score
+[[ -f gen0/model-g0-1-rescore_enrich.txt ]] || ./oneshot.sh "$@"
+
 NIB=$1
-WHOLELIC=$2
 
 GENERATION=0
 WDIR=gen${GENERATION}
 VICTIM=1
 MOF=model-g${GENERATION}-${VICTIM}.mol2
-OPT="-an LIG -c 2 -lp -las 20 -ts 18 -nro"
-if [[ -n "${4}" ]]
-then
-    if [[ "${4}x" = "BRx" ]]
-    then
-	BRA=20
-    else
-	BRA=${4#BR}
-    fi
-fi
-
 WINNER=${WDIR}/${MOF}
-
-case "${4}" in
-    'EF')
-	echo "Rank by EFd 1"
-	SCORE=$(sed -n "s/EF_1.0.*= //p" ${WDIR}/model-g${GENERATION}-${VICTIM}-rescore_enrich.txt) ;;
-    BR*)
-	echo "Rank by BR ${BRA}"
-	SCORE=$(sed -n "s/BEDROC.*= //p" ${WDIR}/model-g${GENERATION}-${VICTIM}-rescore_enrich.txt) ;;
-    *)
-	echo "Rank by AUC"
-	SCORE=$(sed -n "/AUC/ {s/AUC=//; s/+-.*//; p}" ${WDIR}/model-g${GENERATION}-${VICTIM}-rescore_enrich.txt) ;;
-esac
+SCORE=$(get_score "${4}" ${VICTIM})
 echo "The best pocket of generation ${GENERATION} was ${WINNER}"
 cat ${WINNER%.mol2}-rescore_enrich.txt
 
-    BEST=${SCORE}
-    WDIR=type${GENERATION}
-    mkdir ${WDIR}
-    HEADER=$(grep -n ATOM "${NIB}" | cut -d: -f1)
-    NUM=$(tail -n +$[1 + ${HEADER}] "${NIB}" | grep -c -v "^$")
-    [[ "$NUM" -lt 2 ]] && exit 0
 
-    # Prepare pockets
-    for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
+BEST=${SCORE}
+WDIR=type${GENERATION}
+mkdir ${WDIR}
+HEADER=$(grep -n ATOM "${NIB}" | cut -d: -f1)
+NUM=$(tail -n +$[1 + ${HEADER}] "${NIB}" | grep -c -v "^$")
+[[ "$NUM" -lt 2 ]] && exit 0
+
+# Prepare pockets
+for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
+do
+    MOF=model-g${GENERATION}-${VICTIM}.mol2
+    sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOF}
+    tail -n +$[1 + ${HEADER}] "${NIB}" | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOF}
+
+    THIRD=$[${NUM} + ${VICTIM}]
+    MOG=model-g${GENERATION}-${THIRD}.mol2
+    sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOG}
+    tail -n +$[1 + ${HEADER}] ${WDIR}/${MOF} | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOG}
+done
+
+# Rescore pockets
+pushd ${WDIR}
+NPROC=0
+for PLIC in ../part*.mol2
+do
+    for VICTIM in model-g*.mol2
     do
-	MOF=model-g${GENERATION}-${VICTIM}.mol2
-	sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOF}
-	tail -n +$[1 + ${HEADER}] "${NIB}" | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOF}
-
-	THIRD=$[${NUM} + ${VICTIM}]
-	MOG=model-g${GENERATION}-${THIRD}.mol2
-	sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOG}
-	tail -n +$[1 + ${HEADER}] ${WDIR}/${MOF} | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOG}
-    done
-
-    # Rescore pockets
-    pushd ${WDIR}
-    for PLIC in ../part*.mol2
-    do
-	if [[ "x${3}" = "xslurm" ]] ; then
-	    sbatch --wait --array=1-${VICTIM} ../nibscore.sh ${GENERATION} "${PLIC}"
-	else
-	    NPROC=0
-	    for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
-	    do
-		../nibscore.sh ${GENERATION} "${PLIC}" ${VICTIM} &
-		../nibscore.sh ${GENERATION} "${PLIC}" $[${NUM} + ${VICTIM}] &
-		NPROC=$[NPROC + 1]
-		if [[ "$NPROC" -ge ${3:-4} ]]; then
-		    wait
-		    NPROC=0
-		fi
-	    done
+	../nibscore.sh ${VICTIM} "${PLIC}" &
+	NPROC=$[NPROC + 1]
+	if [[ "$NPROC" -ge ${3:-4} ]]; then
 	    wait
+	    NPROC=0
 	fi
     done
+done
+wait
 
-    for (( VICTIM=1; VICTIM<=$[${NUM} + ${NUM}]; ++VICTIM ))
-    do
-	MOT=model-g${GENERATION}-${VICTIM}-rescore
-	MOR=${MOT}_enrich.txt
-	awk -f ../trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
-	#
-	OPT="-an LIG -c 2 -lp -las 20 -ts 18 -nro"
-	#
-	${ROCKER} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}
-	${ROCKER} ${MOT}-trim.txt ${OPT} -BR ${BRA} -EFd 5 | tail -2 >> ${MOR}
-    done
-    popd
+NPROC=0
+for (( VICTIM=1; VICTIM<=$[${NUM} + ${NUM}]; ++VICTIM ))
+do
+    ../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${4}" &
+    NPROC=$[NPROC + 1]
+    if [[ "$NPROC" -ge ${3:-4} ]]; then
+	wait
+	NPROC=0
+    fi
+done
+wait
+popd
 
-    WWDIR=type1
-    mkdir ${WWDIR}
-    sed "${HEADER} q;" "${NIB}" > "${WWDIR}/model-g1-1.mol2"
-    for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
-    do
-	case "${4}" in
-	    'EF')
-		EF=$(sed -n "s/EF_1.0.*= //p" ${WDIR}/model-g${GENERATION}-${VICTIM}-rescore_enrich.txt) ;;
-	    BR*)
-		EF=$(sed -n "s/BEDROC.*= //p" ${WDIR}/model-g${GENERATION}-${VICTIM}-rescore_enrich.txt) ;;
-	    *)
-		EF=$(sed -n "/AUC/ {s/AUC=//; s/+-.*//; p}" ${WDIR}/model-g${GENERATION}-${VICTIM}-rescore_enrich.txt) ;;
-	esac
-	THIRD=$[${NUM} + ${VICTIM}]
-	case "${4}" in
-	    'EF')
-		EG=$(sed -n "s/EF_1.0.*= //p" ${WDIR}/model-g${GENERATION}-${THIRD}-rescore_enrich.txt) ;;
-	    BR*)
-		EG=$(sed -n "s/BEDROC.*= //p" ${WDIR}/model-g${GENERATION}-${THIRD}-rescore_enrich.txt) ;;
-	    *)
-		EG=$(sed -n "/AUC/ {s/AUC=//; s/+-.*//; p}" ${WDIR}/model-g${GENERATION}-${THIRD}-rescore_enrich.txt) ;;
-	esac
-	if [[ 1 = $(echo $EF'>'$BEST | bc -l) ]] ; then
-	    if [[ 1 = $(echo $EG'>'$EF | bc -l) ]] ; then
-		sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${THIRD}.mol2" >> "${WWDIR}/model-g1-1.mol2"
-	    else
-		sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${VICTIM}.mol2" >> "${WWDIR}/model-g1-1.mol2"
-	    fi
-	elif [[ 1 = $(echo $EG'>'$BEST | bc -l) ]] ; then
+WWDIR=type1
+mkdir ${WWDIR}
+sed "${HEADER} q;" "${NIB}" > "${WWDIR}/model-g1-1.mol2"
+for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
+do
+    EF=$(get_score "${4}" "${VICTIM}")
+    THIRD=$[${NUM} + ${VICTIM}]
+    EG=$(get_score "${4}" ${THIRD})
+
+    if [[ 1 = $(echo $EF'>'$BEST | bc -l) ]] ; then
+	if [[ 1 = $(echo $EG'>'$EF | bc -l) ]] ; then
 	    sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${THIRD}.mol2" >> "${WWDIR}/model-g1-1.mol2"
 	else
-	    sed -n "$[${VICTIM} + ${HEADER}] p" "${NIB}" >> "${WWDIR}/model-g1-1.mol2"
+	    sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${VICTIM}.mol2" >> "${WWDIR}/model-g1-1.mol2"
 	fi
-    done
+    elif [[ 1 = $(echo $EG'>'$BEST | bc -l) ]] ; then
+	sed -n "$[${VICTIM} + ${HEADER}] p" "${WDIR}/model-g${GENERATION}-${THIRD}.mol2" >> "${WWDIR}/model-g1-1.mol2"
+    else
+	sed -n "$[${VICTIM} + ${HEADER}] p" "${NIB}" >> "${WWDIR}/model-g1-1.mol2"
+    fi
+done
 
-    GENERATION=1
-    pushd ${WWDIR}
-    VICTIM=1
-    for PLIC in ../part*.mol2
+GENERATION=1
+pushd ${WWDIR}
+for PLIC in ../part*.mol2
+do
+    for VICTIM in model-g*.mol2
     do
-	../nibscore.sh ${GENERATION} "${PLIC}" ${VICTIM}
+	../nibscore.sh ${VICTIM} "${PLIC}"
     done
+done
 
-    MOT=model-g${GENERATION}-${VICTIM}-rescore
-    MOR=${MOT}_enrich.txt
-    awk -f ../trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
-    #
-    OPT="-an LIG -c 2 -lp -las 20 -ts 18 -nro"
-    #
-    ${ROCKER} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}
-    ${ROCKER} ${MOT}-trim.txt ${OPT} -BR ${BRA} -EFd 5 | tail -2 >> ${MOR}
-    popd
-    cat ${WWDIR}/model-g1-1-rescore_enrich.txt
+VICTIM=1
+../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${4}"
+popd
+cat ${WWDIR}/model-g1-1-rescore_enrich.txt
