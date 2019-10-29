@@ -5,7 +5,7 @@ shopt -s extglob
 #
 
 ROCKER="rocker"
-OPT="-an LIG -c 2 -lp -las 20 -ts 18 -nro"
+OPT="-an ${ACTIVE:-LIG} -c 2 -lp -las 20 -ts 18 -nro"
 
 [[ $# -lt 1 ]] && exit 1
 
