@@ -36,16 +36,17 @@ function usage_and_exit ()
 
 function get_score ()
 {
+# args: scoremethod modelnumber wdir
     case "${1}" in
 	'EF')
 	    # echo "Rank by EFd 1"
-	    sed -n "s/EF_1.0.*= //p" ${WDIR}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
+	    sed -n "s/EF_1.0.*= //p" ${3}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
 	BR*)
 	    # echo "Rank by BR ${BRA}"
-	    sed -n "s/BEDROC.*= //p" ${WDIR}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
+	    sed -n "s/BEDROC.*= //p" ${3}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
 	*)
 	    # echo "Rank by AUC"
-	    sed -n "/AUC/ {s/AUC=//; s/+-.*//; p}" ${WDIR}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
+	    sed -n "/AUC/ {s/AUC=//; s/+-.*//; p}" ${3}/model-g${GENERATION}-${2}-rescore_enrich.txt ;;
     esac
 }
 
@@ -91,7 +92,7 @@ WDIR=${PREFIX}${GENERATION}
 VICTIM=1
 MOF=model-g${GENERATION}-${VICTIM}.mol2
 WINNER=${WDIR}/${MOF}
-SCORE=$(get_score "${SCORING}" ${VICTIM})
+SCORE=$(get_score "${SCORING}" ${VICTIM} ${WDIR})
 echo "The best pocket of generation ${GENERATION} was ${WINNER}"
 cat ${WINNER%.mol2}-rescore_enrich.txt
 
@@ -149,13 +150,14 @@ popd
 PDIR=${WDIR}
 PGEN=${GENERATION}
 WDIR=type1
+
 mkdir ${WDIR}
 sed "${HEADER} q;" "${NIB}" > "${WDIR}/model-g1-1.mol2"
 for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
 do
-    EF=$(get_score "${SCORING}" "${VICTIM}")
+    EF=$(get_score "${SCORING}" "${VICTIM}" ${PDIR})
     THIRD=$[${NUM} + ${VICTIM}]
-    EG=$(get_score "${SCORING}" ${THIRD})
+    EG=$(get_score "${SCORING}" ${THIRD} ${PDIR})
 
     if [[ 1 = $(echo $EF'>'$BEST | bc -l) ]] ; then
 	if [[ 1 = $(echo $EG'>'$EF | bc -l) ]] ; then
