@@ -12,7 +12,9 @@ shopt -s extglob
 
 function usage_and_exit ()
 {
-    echo "Usage: ./brutenib.sh options"
+    echo "brutenib version 2020-02-05"
+    echo ""
+    echo "Usage: brutenib.sh options"
     echo "Options:"
     echo "-m model,            E.g. cavity-based NIB model from PANTHER (in MOL2 format)."
     echo "-l training-set,     A ligand file with multiple docking poses for actives (LIG)"

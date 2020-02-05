@@ -7,7 +7,7 @@ shopt -s extglob
 
 function usage_and_exit ()
 {
-    echo "Usage: ./oneshot.sh options"
+    echo "Usage: oneshot.sh options"
     echo "Options:"
     echo "-m input_nib.mol2,   A cavity-based NIB model from PANTHER (in MOL2 format)."
     echo "-l ligand_file.mol2, A ligand file with multiple docking poses for actives (LIG)"
