@@ -5,8 +5,7 @@
 # BruteNiB (Brute Force Negative Image-Based Rescoring)
 #
 
-# SHAEP="/app64/shaep/shaep-1.1.2.1036"
-SHAEP="/scratch/jlehtone/brutenib/shaep"
+SHAEP="${SHAEP:=shaep}"
 
 [[ $# -lt 3 ]] && exit 1
 

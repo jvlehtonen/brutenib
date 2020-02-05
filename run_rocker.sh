@@ -3,9 +3,12 @@ shopt -s extglob
 #
 # Brute helper script
 #
+[[ -z "${ACTIVENAME}" ]] && ACTIVENAME=CHEMBL
 
-ROCKER="rocker"
-OPT="-an ${ACTIVE:-CHEMBL} -c 2 -lp -las 20 -ts 18 -nro"
+ROCKERBIN="${ROCKER:=rocker}"
+OPT="${ACTIVENAME:+--activename ${ACTIVENAME} } ${ACTIVELIST:+--activename ${ACTIVELIST} } -c 2 -lp -las 20 -ts 18 -nro"
+
+echo "### ${ROCKERBIN} ${OPT} ###"
 
 [[ $# -lt 1 ]] && exit 1
 
@@ -17,8 +20,8 @@ esac
 
 # Reduce Shaep output to two columns
 MOT=$1
-awk -f ../trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
+awk -f ${BRUTEBIN}/trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
 #
 MOR=${MOT}_enrich.txt
-${ROCKER} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}
-${ROCKER} ${MOT}-trim.txt ${OPT} -BR ${BRA} -EFd 5 | tail -2 >> ${MOR}
+${ROCKERBIN} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}
+${ROCKERBIN} ${MOT}-trim.txt ${OPT} -BR ${BRA} -EFd 5 | tail -2 >> ${MOR}

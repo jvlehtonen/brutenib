@@ -23,7 +23,9 @@ function usage_and_exit ()
     echo "                     Anything else selects AUC. Defaults to AUC."
     echo "-p prefix,           Prefix for generated directory names.  Optional.  Defaults to 'gen'."
     echo "-g number,           Maximum iterations.  Optional.  Defaults to 100."
+    echo "-a REGEXP,           Sets ACTIVENAME for rocker.  Optional."
     echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
+    echo "--chunk number,      Ligand set is split to chunks to avoid memory exhaustion. Ligands per chunk. Optional.  Defaults to 100000."
     echo "-h|--help,           This text."
     exit 1
 }
@@ -43,10 +45,12 @@ function get_score ()
     esac
 }
 
+export BRUTEBIN=$(dirname $(realpath $0))
+
 # Note that we use `"$@"' to let each command-line parameter expand to a
 # separate word. The quotes around `$@' are essential!
 # We need TEMP as the `eval set --' would nuke the return value of getopt.
-TEMP=$(getopt -o m:l:c:s:p:g:h -l espweight:,help -n 'brutenib' -- "$@")
+TEMP=$(getopt -o m:l:c:s:p:g:a:h -l espweight:,chunk:,help -n 'brutenib' -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
 # Note the quotes around `$TEMP': they are essential!
@@ -57,8 +61,10 @@ LIGANDS=""
 CORES="4"
 SCORING="AUC"
 PREFIX="gen"
-ITERATIONS="100"
+ITERATIONS="300"
+ACTIVENAME=""
 ESPWEIGHT="0.5"
+CHUNK=100000
 while true ; do
         case "$1" in
                 -l) LIGANDS="$2"    ; shift 2 ;;
@@ -67,20 +73,36 @@ while true ; do
                 -s) SCORING="$2"    ; shift 2 ;;
                 -c) CORES="$2"      ; shift 2 ;;
                 -g) ITERATIONS="$2" ; shift 2 ;;
+                -a) ACTIVENAME="$2" ; shift 2 ; export ACTIVENAME ;;
                 --espweight) ESPWEIGHT="$2" ; shift 2 ;;
+                --chunk) CHUNK="$2" ; shift 2 ;;
                 -h|--help) usage_and_exit ;;
                 --) shift ; break ;;
                 *) echo "Internal error!" ; exit 1 ;;
         esac
 done
 
+# Verify that necessary programs are available
+if [[ ! -e "${ROCKER:=$(which rocker 2>/dev/null)}" ]]
+then
+    echo "Command 'rocker' not found!"
+    exit 1
+fi
+
+if [[ ! -e "${SHAEP:=$(which shaep 2>/dev/null)}" ]]
+then
+    echo "Command 'shaep' not found!"
+    exit 1
+fi
+export ROCKER SHAEP
+
 # Must have model and ligand files
 [[ -n "${MODEL}" && -n "${LIGANDS}" ]] || usage_and_exit
 
-[[ -f part1.mol2 ]] || ./mol2split "${LIGANDS}" 100000
+[[ -f part1.mol2 ]] || ${BRUTEBIN}/mol2split "${LIGANDS}" ${CHUNK}
 
 # Ensure that we have initial model and its score
-[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || ./oneshot.sh -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX}
+[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || ${BRUTEBIN}/oneshot.sh -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX}
 
 GENERATION=0
 VICTIM=1
@@ -120,7 +142,7 @@ do
     do
 	for VICTIM in model-g*.mol2
 	do
-	    ../nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} &
+	    ${BRUTEBIN}/nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} &
 	    NPROC=$[NPROC + 1]
 	    if [[ "$NPROC" -ge ${CORES} ]]; then
 		wait
@@ -133,7 +155,7 @@ do
     NPROC=0
     for VICTIM in model-g*.mol2
     do
-	../run_rocker.sh ${VICTIM%.mol2}-rescore "${SCORING}" &
+	${BRUTEBIN}/run_rocker.sh ${VICTIM%.mol2}-rescore "${SCORING}" &
 	NPROC=$[NPROC + 1]
 	if [[ "$NPROC" -ge ${CORES} ]]; then
 	    wait

@@ -16,11 +16,12 @@ function usage_and_exit ()
     echo "                     Anything else selects AUC. Defaults to AUC."
     echo "-p prefix,           Prefix for generated directory names.  Optional.  Defaults to 'gen'."
     echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
+    echo "--chunk number,      Ligand set is split to chunks to avoid memory exhaustion. Ligands per chunk. Optional.  Defaults to 100000."
     echo "-h|--help,           This text"
     exit 1
 }
 
-TEMP=$(getopt -o m:l:s:p:h -l espweight:,help -n 'oneshot' -- "$@")
+TEMP=$(getopt -o m:l:s:p:h -l espweight:,chunk:,help -n 'oneshot' -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 MODEL=""
@@ -28,6 +29,7 @@ LIGANDS=""
 SCORING="AUC"
 PREFIX="gen"
 ESPWEIGHT="0.5"
+CHUNK=100000
 while true ; do
         case "$1" in
                 -l) LIGANDS="$2" ; shift 2 ;;
@@ -35,6 +37,7 @@ while true ; do
                 -p) PREFIX="$2"  ; shift 2 ;;
                 -s) SCORING="$2" ; shift 2 ;;
                 --espweight) ESPWEIGHT="$2" ; shift 2 ;;
+                --chunk) CHUNK="$2" ; shift 2 ;;
                 -h|--help) usage_and_exit ;;
                 --) shift ; break ;;
                 *) echo "Internal error!" ; exit 1 ;;
@@ -44,7 +47,7 @@ done
 # Must have model and ligand files
 [[ -n "${MODEL}" && -n "${LIGANDS}" ]] || usage_and_exit
 
-[[ -f part1.mol2 ]] || ./mol2split "${LIGANDS}" 100000
+[[ -f part1.mol2 ]] || ${BRUTEBIN}/mol2split "${LIGANDS}" ${CHUNK}
 
 GENERATION=0
 WDIR=${PREFIX}${GENERATION}
@@ -55,9 +58,9 @@ cp "${MODEL}" ${WDIR}/${MOF}
 pushd ${WDIR}
 for PLIC in ../part*.mol2
 do
-    ../nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT}
+    ${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT}
 done
-../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
+${BRUTEBIN}/run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
 
 popd
 WINNER=${WDIR}/${MOF}
