@@ -16,12 +16,13 @@ function usage_and_exit ()
     echo "                     Anything else selects AUC. Defaults to AUC."
     echo "-p prefix,           Prefix for generated directory names.  Optional.  Defaults to 'gen'."
     echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
+    echo "--exclusion arg,     Shaep exclusion.  Optional."
     echo "--chunk number,      Ligand set is split to chunks to avoid memory exhaustion. Ligands per chunk. Optional.  Defaults to 100000."
     echo "-h|--help,           This text"
     exit 1
 }
 
-TEMP=$(getopt -o m:l:s:p:h -l espweight:,chunk:,help -n 'oneshot' -- "$@")
+TEMP=$(getopt -o m:l:s:p:h -l espweight:,exclusion:,chunk:,help -n 'oneshot' -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 MODEL=""
@@ -29,6 +30,7 @@ LIGANDS=""
 SCORING="AUC"
 PREFIX="gen"
 ESPWEIGHT="0.5"
+EXCLUSION=""
 CHUNK=100000
 while true ; do
         case "$1" in
@@ -37,6 +39,7 @@ while true ; do
                 -p) PREFIX="$2"  ; shift 2 ;;
                 -s) SCORING="$2" ; shift 2 ;;
                 --espweight) ESPWEIGHT="$2" ; shift 2 ;;
+                --exclusion) EXCLUSION="$2" ; shift 2 ;;
                 --chunk) CHUNK="$2" ; shift 2 ;;
                 -h|--help) usage_and_exit ;;
                 --) shift ; break ;;
@@ -58,7 +61,7 @@ cp "${MODEL}" ${WDIR}/${MOF}
 pushd ${WDIR}
 for PLIC in ../part*.mol2
 do
-    ${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT}
+    ${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION}
 done
 ${BRUTEBIN}/run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
 

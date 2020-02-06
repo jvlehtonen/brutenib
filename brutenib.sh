@@ -12,7 +12,7 @@ shopt -s extglob
 
 function usage_and_exit ()
 {
-    echo "brutenib version 2020-02-05"
+    echo "brutenib version 2020-02-06"
     echo ""
     echo "Usage: brutenib.sh options"
     echo "Options:"
@@ -27,6 +27,7 @@ function usage_and_exit ()
     echo "-g number,           Maximum iterations.  Optional.  Defaults to 100."
     echo "-a REGEXP,           Sets ACTIVENAME for rocker.  Optional."
     echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
+    echo "--exclusion arg,     Shaep exclusion.  Optional."
     echo "--chunk number,      Ligand set is split to chunks to avoid memory exhaustion. Ligands per chunk. Optional.  Defaults to 100000."
     echo "-h|--help,           This text."
     exit 1
@@ -52,7 +53,7 @@ export BRUTEBIN=$(dirname $(realpath $0))
 # Note that we use `"$@"' to let each command-line parameter expand to a
 # separate word. The quotes around `$@' are essential!
 # We need TEMP as the `eval set --' would nuke the return value of getopt.
-TEMP=$(getopt -o m:l:c:s:p:g:a:h -l espweight:,chunk:,help -n 'brutenib' -- "$@")
+TEMP=$(getopt -o m:l:c:s:p:g:a:h -l espweight:,exclusion:,chunk:,help -n 'brutenib' -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
 # Note the quotes around `$TEMP': they are essential!
@@ -66,6 +67,7 @@ PREFIX="gen"
 ITERATIONS="300"
 ACTIVENAME=""
 ESPWEIGHT="0.5"
+EXCLUSION=""
 CHUNK=100000
 while true ; do
         case "$1" in
@@ -77,6 +79,7 @@ while true ; do
                 -g) ITERATIONS="$2" ; shift 2 ;;
                 -a) ACTIVENAME="$2" ; shift 2 ; export ACTIVENAME ;;
                 --espweight) ESPWEIGHT="$2" ; shift 2 ;;
+                --exclusion) EXCLUSION="$2" ; shift 2 ;;
                 --chunk) CHUNK="$2" ; shift 2 ;;
                 -h|--help) usage_and_exit ;;
                 --) shift ; break ;;
@@ -144,7 +147,7 @@ do
     do
 	for VICTIM in model-g*.mol2
 	do
-	    ${BRUTEBIN}/nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} &
+	    ${BRUTEBIN}/nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION} &
 	    NPROC=$[NPROC + 1]
 	    if [[ "$NPROC" -ge ${CORES} ]]; then
 		wait
