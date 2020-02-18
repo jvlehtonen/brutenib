@@ -61,7 +61,8 @@ cp "${MODEL}" ${WDIR}/${MOF}
 pushd ${WDIR}
 for PLIC in ../part*.mol2
 do
-    ${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION}
+    echo "###${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION}###"
+    ${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION} 2> /dev/null
 done
 ${BRUTEBIN}/run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
 

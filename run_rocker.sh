@@ -8,7 +8,7 @@ shopt -s extglob
 ROCKERBIN="${ROCKER:=rocker}"
 OPT="${ACTIVENAME:+--activename ${ACTIVENAME} } ${ACTIVELIST:+--activename ${ACTIVELIST} } -c 2 -lp -las 20 -ts 18 -nro"
 
-echo "### ${ROCKERBIN} ${OPT} ###"
+# echo "### ${ROCKERBIN} ${OPT} ###"
 
 [[ $# -lt 1 ]] && exit 1
 
