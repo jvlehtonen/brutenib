@@ -1,3 +1,6 @@
+// Copyright 2019 Jukka Lehtonen
+// GPL-3.0-or-later
+
 #include <fstream>
 #include <string>
 
