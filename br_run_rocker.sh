@@ -18,9 +18,10 @@ case "${2}" in
     *)    ;;
 esac
 
+export AWKPATH=$(dirname $(realpath $0))
 # Reduce Shaep output to two columns
 MOT=$1
-br_trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
+awk -f br_trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
 #
 MOR=${MOT}_enrich.txt
 ${ROCKERBIN} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}
