@@ -47,7 +47,7 @@ function usage_and_exit ()
     echo "                     Anything else selects AUC. Defaults to AUC."
     echo "-p prefix,           Prefix for generated directory names.  Optional.  Defaults to 'gen'."
     echo "-g number,           Maximum iterations.  Optional.  Defaults to 100."
-    echo "-a REGEXP,           Sets ACTIVENAME for rocker.  Optional."
+    echo "-a REGEXP,           Sets ACTIVENAME for rocker.  Optional.  Defaults to 'CHEMBL'."
     echo "--espweight number,  Shaep espweight.  Optional.  Defaults to 0.5."
     echo "--exclusion arg,     Shaep exclusion.  Optional."
     echo "--chunk number,      Ligand set is split to chunks to avoid memory exhaustion. Ligands per chunk. Optional.  Defaults to 100000."
