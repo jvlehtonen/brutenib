@@ -50,7 +50,7 @@ done
 # Must have model and ligand files
 [[ -n "${MODEL}" && -n "${LIGANDS}" ]] || usage_and_exit
 
-[[ -f part1.mol2 ]] || ${BRUTEBIN}/mol2split "${LIGANDS}" ${CHUNK}
+[[ -f part1.mol2 ]] || mol2split "${LIGANDS}" ${CHUNK}
 
 GENERATION=0
 WDIR=${PREFIX}${GENERATION}
@@ -61,10 +61,10 @@ cp "${MODEL}" ${WDIR}/${MOF}
 pushd ${WDIR}
 for PLIC in ../part*.mol2
 do
-    echo "###${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION}###"
-    ${BRUTEBIN}/nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION} 2> /dev/null
+    echo "###br_nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION}###"
+    br_nibscore.sh ${MOF} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION} 2> /dev/null
 done
-${BRUTEBIN}/run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
+br_run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}"
 
 popd
 WINNER=${WDIR}/${MOF}

@@ -13,4 +13,4 @@ add_executable(mol2split src/mol2split.cpp)
 add_executable(smiles2train src/smiles2train.cpp)
 
 install(TARGETS mol2filter mol2split smiles2train DESTINATION bin)
-install(PROGRAMS brutenib.sh DESTINATION bin)
+install(PROGRAMS brutenib br_oneshot br_nibscore.sh br_run_rocker.sh br_trim-shaep.awk DESTINATION bin)

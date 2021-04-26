@@ -20,7 +20,7 @@ esac
 
 # Reduce Shaep output to two columns
 MOT=$1
-awk -f ${BRUTEBIN}/trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
+br_trim-shaep.awk ${MOT}.txt > ${MOT}-trim.txt
 #
 MOR=${MOT}_enrich.txt
 ${ROCKERBIN} ${MOT}-trim.txt ${OPT} -EFd 1 | grep -v Loaded > ${MOR}

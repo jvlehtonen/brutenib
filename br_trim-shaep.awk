@@ -1,3 +1,5 @@
+#!/usr/bin/env -S awk -f
+#
 # Reduce Shaep output to two columns.
 # Assumes that input has no header-line
 BEGIN {

@@ -126,10 +126,10 @@ export ROCKER SHAEP
 # Must have model and ligand files
 [[ -n "${MODEL}" && -n "${LIGANDS}" ]] || usage_and_exit
 
-[[ -f part1.mol2 ]] || ${BRUTEBIN}/mol2split "${LIGANDS}" ${CHUNK}
+[[ -f part1.mol2 ]] || mol2split "${LIGANDS}" ${CHUNK}
 
 # Ensure that we have initial model and its score
-[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || ${BRUTEBIN}/oneshot.sh -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX}
+[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || br_oneshot -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX}
 
 GENERATION=0
 VICTIM=1
@@ -169,7 +169,7 @@ do
     do
 	for VICTIM in model-g*.mol2
 	do
-	    ${BRUTEBIN}/nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION} &
+	    br_nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} ${EXCLUSION} &
 	    NPROC=$[NPROC + 1]
 	    if [[ "$NPROC" -ge ${CORES} ]]; then
 		wait
@@ -182,7 +182,7 @@ do
     NPROC=0
     for VICTIM in model-g*.mol2
     do
-	${BRUTEBIN}/run_rocker.sh ${VICTIM%.mol2}-rescore "${SCORING}" &
+	br_run_rocker.sh ${VICTIM%.mol2}-rescore "${SCORING}" &
 	NPROC=$[NPROC + 1]
 	if [[ "$NPROC" -ge ${CORES} ]]; then
 	    wait
