@@ -36,7 +36,7 @@ function usage_and_exit ()
 {
     echo "brutenib version 2020-02-06"
     echo ""
-    echo "Usage: brutenib.sh options"
+    echo "Usage: brutenib options"
     echo "Options:"
     echo "-m model,            E.g. cavity-based NIB model from PANTHER (in MOL2 format)."
     echo "-l training-set,     A ligand file with multiple docking poses for actives (LIG)"
