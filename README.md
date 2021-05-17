@@ -10,9 +10,12 @@ to each point/atom using a systematic brute force approach.
 
 ## Dependencies
 
-Installation requires C++ compiler that supports **C++11**.
+Installation requires C++ compiler that supports **C++11** and CMake (version 3.10 or later).
 
-For example, RHEL 7 (and CentOS Linux 7, etc) can get modern GCC compiler in *Developer Toolset* from Software Collections.
+For example, RHEL 7 (and CentOS Linux 7, etc) has GCC with (sufficient) experimental support,
+but can get modern GCC compiler in *Developer Toolset* from Software Collections.
+
+cmake3 for el7 can be found from EPEL repository.
 
 Running requires that commands 'rocker' and 'shaep' are on the path.
 * ROCKER: http://www.medchem.fi/rocker/
@@ -20,30 +23,25 @@ Running requires that commands 'rocker' and 'shaep' are on the path.
 
 ## Installation
 
-Open package contents into a directory.
-
-Run `make` in that directory.  You need a C++ compiler that supports C++11.
-
-You can have brutenib.sh's location on PATH, set alias to the script, etc.
+Clone/download repository from GitHub.  Once you have directory `brutenib`:
 
 ```
-# make folder for binaries:
-mkdir brute
-# make it current
-cd brute
-# unpack package (2020-02-05 is version and will change)
-tar xf path-to/brutenib-2020-02-05.tar.gz
-
+cd brutenib
+mkdir build
+cd build
+cmake3 -DCMAKE_INSTALL_PREFIX=prefix ..
 make
-
-# append folder to path
-export PATH=${PATH}:brute
-# OR set alias
-alias brutenib.sh=brute/brutenib.sh
-# OR use full path when calling brutenib.sh
+make install
 ```
+
+The install will place files under directory `prefix`. The `-DCMAKE_INSTALL_PREFIX=prefix` is optional.
+The default prefix is `/usr/local` and writing there requires admin privileges.
+E.g. `sudo make install`.
+
+Ensure that directory `prefix/bin` is on the `PATH`.
+
 
 ## Usage
 
-Make a working directory.  Call the `brutenib.sh` in that directory.
+Make a working directory.  Call the `brutenib` in that directory.
 It will show what options are required.
