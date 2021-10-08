@@ -1,12 +1,16 @@
-# BruteNiB (Brute Force Negative Image-Based Rescoring)
+# BruteNiB (Brute Force Negative Image-Based Optimization)
 
-The BruteNiB script evaluates the impact of each cavity point (or
-atom) in a cavity-based negative image or NIB model for the negative
-image-based rescoring (R-NiB) of explicit PLANTS docking poses.  If
-the removal of any of the points/atoms improves the R-NiB yield, the
-corresponding line is removed from the NIB model permanently.  The
-iterative remove & evaluate process with the outputted model is done
-to each point/atom using a systematic brute force approach.
+The purpose of BruteNiB script is to optimize cavity-based negative images or negative
+image-based (NIB) models for their improved docking rescoring use. The input NIB models
+can be generated using cavity detection/filling software PANTHER. The rescoring method
+titled negative image-based rescoring (R-NiB) relyes on shape/electrostatics similarity
+between the docking poses of ligands and the NIB model. The explicit docking poses can
+originate from any software, however, by default the script works directly with PLANTS.
+During the optimization, the script evaluates the impact of each cavity atom in a NIB
+model. If the removal of any of the atoms improves the R-NiB yield, the corresponding
+line is removed from the NIB model permanently. The iterative remove & evaluate process
+with the outputted model is done to each atom using a systematic greedy search approach
+here dubbed as Brute Force Negative Image-Based Optimization (BR-NiB).
 
 ## Dependencies
 
