@@ -1,4 +1,4 @@
-# BR-NiB (Brute Force Negative Image-Based Optimization)
+# BR-NiB: Brute Force Negative Image-Based Optimization
 
 Negative image-based rescoring (R-NiB) is a docking rescoring method that relyes on shape/
 electrostatic potential similarity between the docking poses of ligands and the cavity-based
