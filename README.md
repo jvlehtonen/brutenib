@@ -8,11 +8,11 @@ the brutenib script is to optimize the cavity atom compositions of the negative 
 
 The input NIB models for BR-NiB can be generated using cavity detection/filling software 
 PANTHER (http://www.medchem.fi/panther/). The explicit docking poses can originate from any
-docking software (Autodock, AutodockVina, Glide etc.), however, by default the script works 
+docking software (AUTODOCK, VINA, GLIDE, DOCK, PLANTS), however, by default the script works 
 directly with PLANTS and ChEMBL database-based DUD and DUD-E training/test sets.
 
 During the optimization, the BR-NiB script evaluates the impact of each cavity atom in the
-NIB model for docking enrichment. If the removal of any of the atoms improves the R-NiB yield,
+NIB model for the docking enrichment. If the removal of any of the atoms improves the R-NiB yield,
 the corresponding line is removed from the NIB model permanently. The iterative remove and
 evaluate process with the outputted model is done to each atom using a systematic greedy
 search approach here dubbed as BR-NiB.
