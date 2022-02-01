@@ -72,7 +72,7 @@ It will show what options are required.
 1. For PANTHER: 
       Niinivehmas et al., 2015; J Comput Aided Mol Des; 29(10):989-1006; 
       doi: 10.1007/s10822-015-9870-3; https://link.springer.com/article/10.1007%2Fs10822-015-9870-3
-2. For ShAEP: 
+2. For ShaEP: 
       Vainio et al., 2009; J Chem Inf Model; 49(2):492-502;
       doi: 10.1021/ci800315d; https://pubs.acs.org/doi/10.1021/ci800315d
 3. For ROCKER:
