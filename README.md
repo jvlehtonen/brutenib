@@ -60,7 +60,7 @@ It will show what options are required.
 
 1. For BR-NiB: 
       Kurkinen et al. 2022; J Chem Inf Model; ACCEPTED.
-      doi: XXX; https
+      doi: 10.1021/acs.jcim.1c01145 ; https
 2. For R-NiB:
       Kurkinen et al. 2019; J Chem Inf Model; 59(8):3584-3599.
       doi: 10.1021/acs.jcim.9b00383; https://pubs.acs.org/doi/10.1021/acs.jcim.9b00383 
