@@ -1,5 +1,7 @@
 # BR-NiB: Brute Force Negative Image-Based Optimization
 
+![TOC](https://pubs.acs.org/na101/home/literatum/publisher/achs/journals/content/jcisd8/0/jcisd8.ahead-of-print/acs.jcim.1c01145/20220208/images/medium/ci1c01145_0006.gif)
+
 Negative image-based rescoring (R-NiB) is a docking rescoring method that relyes on shape/
 electrostatic potential similarity between the docking poses of ligands and the cavity-based
 negative images. The purpose of BR-NiB (Brute Force Negative Image-Based Optimization) or 
@@ -26,7 +28,7 @@ but can get modern GCC compiler in *Developer Toolset* from Software Collections
 
 cmake3 for el7 can be found from EPEL repository.
 
-Running requires that commands 'rocker' and 'shaep' are on the path.
+Running requires that commands 'awk', 'rocker' and 'shaep' are on the path.
 * ROCKER: http://www.medchem.fi/rocker/
 * ShaEP: http://users.abo.fi/mivainio/shaep/
 
