@@ -1,6 +1,6 @@
 # BR-NiB: Brute Force Negative Image-Based Optimization
 
-![TOC](https://pubs.acs.org/na101/home/literatum/publisher/achs/journals/content/jcisd8/0/jcisd8.ahead-of-print/acs.jcim.1c01145/20220208/images/medium/ci1c01145_0006.gif)
+[![TOC](https://pubs.acs.org/na101/home/literatum/publisher/achs/journals/content/jcisd8/0/jcisd8.ahead-of-print/acs.jcim.1c01145/20220208/images/medium/ci1c01145_0006.gif)](https://pubs.acs.org/doi/10.1021/acs.jcim.1c01145)
 
 Negative image-based rescoring (R-NiB) is a docking rescoring method that relyes on shape/
 electrostatic potential similarity between the docking poses of ligands and the cavity-based
