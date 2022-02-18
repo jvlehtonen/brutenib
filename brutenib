@@ -34,7 +34,7 @@ shopt -s extglob
 
 function usage_and_exit ()
 {
-    echo "brutenib version 2020-02-06"
+    echo "brutenib version 2022-02-18"
     echo ""
     echo "Usage: brutenib options"
     echo "Options:"
@@ -158,7 +158,7 @@ do
     do
 	[[ -f exclude.lst ]] && grep -q "^${VICTIM}$" exclude.lst && continue
 	MOF=model-g${GENERATION}-${VICTIM}.mol2
-	sed "${HEADER} q; s/ *${NUM} */ ${NEW}/" "${NIB}" > ${WDIR}/${MOF}
+	sed "${HEADER} q; /MOLECULE/{n;n;s/\b${NUM}\b/${NEW}/}" "${NIB}" > ${WDIR}/${MOF}
 	tail -n +$[1 + ${HEADER}] "${NIB}" | sed "${VICTIM} d" >> ${WDIR}/${MOF}
     done
 
