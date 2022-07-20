@@ -12,7 +12,7 @@ shopt -s extglob
 
 # MIT License
 #
-# Copyright (c) 2020 Jukka V. Lehtonen (jukka.lehtonen@abo.fi)
+# Copyright (c) 2020,2022 Jukka V. Lehtonen (jukka.lehtonen@abo.fi)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ shopt -s extglob
 
 function usage_and_exit ()
 {
-    echo "brutenib version 2022-02-18"
+    echo "brutenib version 2022-07-20"
     echo ""
     echo "Usage: brutenib options"
     echo "Options:"
@@ -129,7 +129,7 @@ export ROCKER SHAEP
 [[ -f part1.mol2 ]] || mol2split "${LIGANDS}" ${CHUNK}
 
 # Ensure that we have initial model and its score
-[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || br_oneshot -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX}
+[[ -f ${PREFIX}0/model-g0-1-rescore_enrich.txt ]] || br_oneshot -m ${MODEL} -l ${LIGANDS} -s ${SCORING} -p ${PREFIX} --espweight ${ESPWEIGHT}
 
 GENERATION=0
 VICTIM=1
