@@ -4,13 +4,13 @@
 
 Negative image-based rescoring (R-NiB) is a docking rescoring method that relyes on shape/
 electrostatic potential similarity between the docking poses of ligands and the cavity-based
-negative images. The purpose of BR-NiB (Brute Force Negative Image-Based Optimization) or 
+negative images. The purpose of BR-NiB (Brute Force Negative Image-Based Optimization) or
 the brutenib script is to optimize the cavity atom compositions of the negative image-based
-(NIB) models for their improved docking rescoring use. 
+(NIB) models for their improved docking rescoring use.
 
-The input NIB models for BR-NiB can be generated using cavity detection/filling software 
+The input NIB models for BR-NiB can be generated using cavity detection/filling software
 PANTHER (http://www.medchem.fi/panther/). The explicit docking poses can originate from any
-docking software (AUTODOCK, VINA, GLIDE, DOCK, PLANTS), however, by default the script works 
+docking software (AUTODOCK, VINA, GLIDE, DOCK, PLANTS), however, by default the script works
 directly with PLANTS and ChEMBL database-based DUD and DUD-E training/test sets.
 
 During the optimization, the BR-NiB script evaluates the impact of each cavity atom in the
@@ -21,7 +21,7 @@ search approach here dubbed as BR-NiB.
 
 ## Dependencies
 
-Installation requires C++ compiler that supports **C++11** and CMake (version 3.10 or later).
+Installation requires C++ compiler that supports **C++17** and CMake (version 3.10 or later).
 
 For example, RHEL 7 (and CentOS Linux 7, etc) has GCC with (sufficient) experimental support,
 but can get modern GCC compiler in *Developer Toolset* from Software Collections.
@@ -60,29 +60,29 @@ It will show what options are required.
 
 ## How to cite BR-NiB and R-NiB methods
 
-1. For BR-NiB: 
+1. For BR-NiB:
       Kurkinen et al. 2022; J Chem Inf Model; 62(4):1100-1112.
       doi: 10.1021/acs.jcim.1c01145; https://pubs.acs.org/doi/10.1021/acs.jcim.1c01145
 2. For R-NiB:
       Kurkinen et al. 2019; J Chem Inf Model; 59(8):3584-3599.
-      doi: 10.1021/acs.jcim.9b00383; https://pubs.acs.org/doi/10.1021/acs.jcim.9b00383 
+      doi: 10.1021/acs.jcim.9b00383; https://pubs.acs.org/doi/10.1021/acs.jcim.9b00383
       Kurkinen et al. 2018; Front Pharmacol; 9:260.
-      doi: 10.3389/fphar.2018.00260; https://www.frontiersin.org/articles/10.3389/fphar.2018.00260/full 
- 
+      doi: 10.3389/fphar.2018.00260; https://www.frontiersin.org/articles/10.3389/fphar.2018.00260/full
+
 ## Other related & useful publications for BR-NiB usage
 
-1. For PANTHER: 
-      Niinivehmas et al., 2015; J Comput Aided Mol Des; 29(10):989-1006; 
+1. For PANTHER:
+      Niinivehmas et al., 2015; J Comput Aided Mol Des; 29(10):989-1006;
       doi: 10.1007/s10822-015-9870-3; https://link.springer.com/article/10.1007%2Fs10822-015-9870-3
-2. For ShaEP: 
+2. For ShaEP:
       Vainio et al., 2009; J Chem Inf Model; 49(2):492-502;
       doi: 10.1021/ci800315d; https://pubs.acs.org/doi/10.1021/ci800315d
 3. For ROCKER:
       Lätti et al., 2016; J Cheminform; 8(1):45.
       doi: 10.1186/s13321-016-0158-y; https://jcheminf.biomedcentral.com/articles/10.1186/s13321-016-0158-y
-4. For R-NiB Practical: 
-      Ahinko et al., 2019; Int J Mol Sci; 20(11):2779; 
-      doi: 10.3390/ijms20112779; https://www.mdpi.com/1422-0067/20/11/2779 
+4. For R-NiB Practical:
+      Ahinko et al., 2019; Int J Mol Sci; 20(11):2779;
+      doi: 10.3390/ijms20112779; https://www.mdpi.com/1422-0067/20/11/2779
 5. For R-NiB Book Chapter:
       Pentikäinen & Postila, 2021; Methods Mol Biol; 2266:141-154.
-      doi: 10.1007/978-1-0716-1209-5_8; https://link.springer.com/protocol/10.1007%2F978-1-0716-1209-5_8 
+      doi: 10.1007/978-1-0716-1209-5_8; https://link.springer.com/protocol/10.1007%2F978-1-0716-1209-5_8

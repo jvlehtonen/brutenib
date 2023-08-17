@@ -4,8 +4,10 @@ cmake_minimum_required(VERSION 3.10)
 project(BR-Nib)
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_EXTENSIONS False)
+set(CMAKE_BUILD_TYPE Release)
 
 # add the executable
 add_executable(mol2filter src/mol2filter.cpp)
