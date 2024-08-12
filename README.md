@@ -32,6 +32,8 @@ Running requires that commands 'awk', 'rocker' and 'shaep' are on the path.
 * ROCKER: http://www.medchem.fi/rocker/
 * ShaEP: http://users.abo.fi/mivainio/shaep/
 
+Note: ShaEP 1.4 does use parallelism. BR-NIB was tested with and tailored to use ShaEP 1.3, which did not. Do use option `-c 1` if you do have ShaEP 1.4.0.
+
 ## Installation
 
 Clone/download repository from GitHub.  Once you have directory `brutenib`:
