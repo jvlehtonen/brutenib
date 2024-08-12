@@ -95,22 +95,22 @@ while [[ ${GENERATION} -lt ${ITERATIONS} ]]
 do
     BEST=${SCORE}
     CAND=${WINNER}
-    GENERATION=$[GENERATION + 1]
+    GENERATION=$((GENERATION + 1))
     WDIR=${PREFIX}${GENERATION}
     mkdir ${WDIR}
     NIB=${WINNER}
     HEADER=$(grep -n ATOM "${NIB}" | cut -d: -f1)
-    NUM=$(tail -n +$[1 + ${HEADER}] "${NIB}" | grep -c -v "^$")
+    NUM=$(tail -n +$((1 + ${HEADER})) "${NIB}" | grep -c -v "^$")
     [[ "$NUM" -lt 2 ]] && exit 0
 
-    NEW=$[NUM - 1]
+    NEW=$((NUM - 1))
     # Prepare pockets
     for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
     do
 	[[ -f exclude.lst ]] && grep -q "^${VICTIM}$" exclude.lst && continue
 	MOF=model-g${GENERATION}-${VICTIM}.mol2
 	sed "${HEADER} q; s/ *${NUM} */ ${NEW}/" "${NIB}" > ${WDIR}/${MOF}
-	tail -n +$[1 + ${HEADER}] "${NIB}" | sed "${VICTIM} d" >> ${WDIR}/${MOF}
+	tail -n +$((1 + ${HEADER})) "${NIB}" | sed "${VICTIM} d" >> ${WDIR}/${MOF}
     done
 
     # Rescore pockets
@@ -121,7 +121,7 @@ do
 	for VICTIM in model-g*.mol2
 	do
 	    ../nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} &
-	    NPROC=$[NPROC + 1]
+	    NPROC=$((NPROC + 1))
 	    if [[ "$NPROC" -ge ${CORES} ]]; then
 		wait
 		NPROC=0

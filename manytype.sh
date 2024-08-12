@@ -122,7 +122,7 @@ BEST=${SCORE}
 WDIR=${PREFIX}${GENERATION}
 mkdir ${WDIR}
 HEADER=$(grep -n ATOM "${NIB}" | cut -d: -f1)
-NUM=$(tail -n +$[1 + ${HEADER}] "${NIB}" | grep -c -v "^$")
+NUM=$(tail -n +$((1 + ${HEADER})) "${NIB}" | grep -c -v "^$")
 [[ "$NUM" -lt 2 ]] && exit 0
 
 # Prepare pockets
@@ -133,8 +133,8 @@ do
     P=0
     for (( T=1; T<${#ATOMS}; ++T )); do
 	sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOF}-${T}.mol2
-	tail -n +$[1 + ${HEADER}] ${WDIR}/${MOF}-${P}.mol2 | sed "${VICTIM} y/CNOH/NOHC/" >> ${WDIR}/${MOF}-${T}.mol2
-	P=$[P + 1]
+	tail -n +$((1 + ${HEADER})) ${WDIR}/${MOF}-${P}.mol2 | sed "${VICTIM} y/CNOH/NOHC/" >> ${WDIR}/${MOF}-${T}.mol2
+	P=$((P + 1))
     done
 done
 rm ${WDIR}/model-g${GENERATION}-*-0.mol2
@@ -148,7 +148,7 @@ do
     do
 	echo "###${BRUTEBIN}/nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT}###"
 	${BRUTEBIN}/nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} 2> /dev/null &
-	NPROC=$[NPROC + 1]
+	NPROC=$((NPROC + 1))
 	if [[ "$NPROC" -ge ${CORES} ]]; then
 	    wait
 	    NPROC=0
@@ -162,7 +162,7 @@ for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
 do
     for (( T=1; T<${#ATOMS}; ++T )); do
 	${BRUTEBIN}/run_rocker.sh model-g${GENERATION}-${VICTIM}-${T}-rescore "${SCORING}" &
-	NPROC=$[NPROC + 1]
+	NPROC=$((NPROC + 1))
 	if [[ "$NPROC" -ge ${CORES} ]]; then
 	    wait
 	    NPROC=0

@@ -101,7 +101,7 @@ BEST=${SCORE}
 WDIR=type${GENERATION}
 mkdir ${WDIR}
 HEADER=$(grep -n ATOM "${NIB}" | cut -d: -f1)
-NUM=$(tail -n +$[1 + ${HEADER}] "${NIB}" | grep -c -v "^$")
+NUM=$(tail -n +$((1 + ${HEADER})) "${NIB}" | grep -c -v "^$")
 [[ "$NUM" -lt 2 ]] && exit 0
 
 # Prepare pockets
@@ -109,12 +109,12 @@ for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
 do
     MOF=model-g${GENERATION}-${VICTIM}.mol2
     sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOF}
-    tail -n +$[1 + ${HEADER}] "${NIB}" | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOF}
+    tail -n +$((1 + ${HEADER})) "${NIB}" | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOF}
 
-    THIRD=$[${NUM} + ${VICTIM}]
+    THIRD=$((${NUM} + ${VICTIM}))
     MOG=model-g${GENERATION}-${THIRD}.mol2
     sed "${HEADER} q;" "${NIB}" > ${WDIR}/${MOG}
-    tail -n +$[1 + ${HEADER}] ${WDIR}/${MOF} | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOG}
+    tail -n +$((1 + ${HEADER})) ${WDIR}/${MOF} | sed "${VICTIM} y/CNO/NOC/" >> ${WDIR}/${MOG}
 done
 
 # Rescore pockets
@@ -125,7 +125,7 @@ do
     for VICTIM in model-g*.mol2
     do
 	../nibscore.sh ${VICTIM} "${PLIC}" ${ESPWEIGHT} &
-	NPROC=$[NPROC + 1]
+	NPROC=$((NPROC + 1))
 	if [[ "$NPROC" -ge ${CORES} ]]; then
 	    wait
 	    NPROC=0
@@ -135,10 +135,10 @@ done
 wait
 
 NPROC=0
-for (( VICTIM=1; VICTIM<=$[${NUM} + ${NUM}]; ++VICTIM ))
+for (( VICTIM=1; VICTIM<=$((${NUM} + ${NUM})); ++VICTIM ))
 do
     ../run_rocker.sh model-g${GENERATION}-${VICTIM}-rescore "${SCORING}" &
-    NPROC=$[NPROC + 1]
+    NPROC=$((NPROC + 1))
     if [[ "$NPROC" -ge ${CORES} ]]; then
 	wait
 	NPROC=0
@@ -156,19 +156,19 @@ sed "${HEADER} q;" "${NIB}" > "${WDIR}/model-g1-1.mol2"
 for (( VICTIM=1; VICTIM<=${NUM}; ++VICTIM ))
 do
     EF=$(get_score "${SCORING}" "${VICTIM}" ${PDIR})
-    THIRD=$[${NUM} + ${VICTIM}]
+    THIRD=$((${NUM} + ${VICTIM}))
     EG=$(get_score "${SCORING}" ${THIRD} ${PDIR})
 
     if [[ 1 = $(echo $EF'>'$BEST | bc -l) ]] ; then
 	if [[ 1 = $(echo $EG'>'$EF | bc -l) ]] ; then
-	    sed -n "$[${VICTIM} + ${HEADER}] p" "${PDIR}/model-g${PGEN}-${THIRD}.mol2" >> "${WDIR}/model-g1-1.mol2"
+	    sed -n "$((${VICTIM} + ${HEADER})) p" "${PDIR}/model-g${PGEN}-${THIRD}.mol2" >> "${WDIR}/model-g1-1.mol2"
 	else
-	    sed -n "$[${VICTIM} + ${HEADER}] p" "${PDIR}/model-g${PGEN}-${VICTIM}.mol2" >> "${WDIR}/model-g1-1.mol2"
+	    sed -n "$((${VICTIM} + ${HEADER})) p" "${PDIR}/model-g${PGEN}-${VICTIM}.mol2" >> "${WDIR}/model-g1-1.mol2"
 	fi
     elif [[ 1 = $(echo $EG'>'$BEST | bc -l) ]] ; then
-	sed -n "$[${VICTIM} + ${HEADER}] p" "${PDIR}/model-g${PGEN}-${THIRD}.mol2" >> "${WDIR}/model-g1-1.mol2"
+	sed -n "$((${VICTIM} + ${HEADER})) p" "${PDIR}/model-g${PGEN}-${THIRD}.mol2" >> "${WDIR}/model-g1-1.mol2"
     else
-	sed -n "$[${VICTIM} + ${HEADER}] p" "${NIB}" >> "${WDIR}/model-g1-1.mol2"
+	sed -n "$((${VICTIM} + ${HEADER})) p" "${NIB}" >> "${WDIR}/model-g1-1.mol2"
     fi
 done
 
