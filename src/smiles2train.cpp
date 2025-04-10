@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2019 Jukka V. Lehtonen (jukka.lehtonen@abo.fi)
+// Copyright (c) 2019,2025 Jukka V. Lehtonen (jukka.lehtonen@abo.fi)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,11 @@ int main( int argc, char ** argv )
     std::vector<std::string> data;
     if ( argc >= 4 ) data.reserve( std::stoi( argv[3], nullptr, 10 ) );
 
+    // If there is 5th parameter, then P is ignored and only the topN
+    // lines are printed to stdout
+    int topN = 0;
+    if ( argc >= 5 ) topN = std::stoi( argv[4], nullptr, 10 );
+
     std::string base( argv[1] );
     std::ifstream input( base );
     std::string line;
@@ -53,27 +58,37 @@ int main( int argc, char ** argv )
 
     std::shuffle( data.begin(), data.end(), generator );
 
-    const size_t limit = P * 0.01 * data.size();
-    if ( 0 < limit )
+    if ( topN )
     {
-      std::ofstream train( base + "_train" );
-      for ( size_t e=0; e < limit; ++e )
+      for ( size_t e=0; e < topN; ++e )
       {
-        train << data[e]  << '\n';
+        std::cout << data[e]  << '\n';
       }
     }
-
-    if ( limit < data.size() )
+    else
     {
-      std::ofstream test( base + "_test" );
-      for ( size_t e=limit; e < data.size(); ++e )
+      const size_t limit = P * 0.01 * data.size();
+      if ( 0 < limit )
       {
-        test << data[e]  << '\n';
+        std::ofstream train( base + "_train" );
+        for ( size_t e=0; e < limit; ++e )
+        {
+          train << data[e]  << '\n';
+        }
+      }
+
+      if ( limit < data.size() )
+      {
+        std::ofstream test( base + "_test" );
+        for ( size_t e=limit; e < data.size(); ++e )
+        {
+          test << data[e]  << '\n';
+        }
       }
     }
   }
   else
   {
-    std::cout << "Requires: " << argv[0] << " inputfile probability(0-100) [number of lines]\n";
+    std::cout << "Requires: " << argv[0] << " inputfile probability(0-100) [number of lines] [topN]\n";
   }
 }
